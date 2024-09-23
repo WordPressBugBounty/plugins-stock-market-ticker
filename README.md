@@ -1,0 +1,1 @@
+# plugins-stock-market-ticker

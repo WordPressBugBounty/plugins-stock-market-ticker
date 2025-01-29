@@ -3,8 +3,8 @@ Contributors: stockdio
 Tags: stock ticker, stock market ticker, ticker, financial ticker, stocks, market, news, quote, finance, quotes, stock, financial, index, indices, currency, currencies, commodities, forex, foreign exchange.
 License: See www.stockdio.com/wordpress for details.
 Requires at least: 3.1
-Tested up to: 6.7
-Stable tag: 1.9.22
+Tested up to: 6.7.1
+Stable tag: 1.9.23
 Easy to use and versatile stock market ticker, with support of over 65 world exchanges, indices, commodities and currencies.
 
 == Description ==
@@ -180,6 +180,11 @@ Yes. You must use BONDS as the stockExchange and then specify one or more bonds 
 14. Stock Market Ticker block sidebar settings.
 
 == Changelog ==
+= 1.19.23 =
+Release date: Jan 29, 2025
+
+* Fixes vulnerability issue.
+
 = 1.9.22 =
 Release date: November 18, 2024
 

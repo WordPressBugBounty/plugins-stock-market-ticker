@@ -4,11 +4,11 @@
 	Plugin URI: http://www.stockdio.com
 	Description: Easy to use and versatile stock market ticker, with support of over 65 world exchanges, commodities, indices and currencies.
 	Author: Stockdio
-	Version: 1.9.22
+	Version: 1.9.23
 	Author URI: http://www.stockdio.com
 */
 //set up the admin area options page 
-define('stockdio_ticker_version','1.9.22');
+define('stockdio_ticker_version','1.9.23');
 define( 'stockdio_ticker__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 class StockdioTickerSettingsPage
 {
@@ -917,6 +917,10 @@ function stockdio_ticker_func( $atts ) {
 		'palette'	=> '',
     ), $atts );
 
+	foreach ($a as $key => $value) {
+		$a[$key] = esc_attr(sanitize_text_field($value));
+	}
+	
     //create variables from arguments array
     extract($a);
 

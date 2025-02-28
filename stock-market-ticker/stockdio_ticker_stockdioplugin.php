@@ -4,11 +4,11 @@
 	Plugin URI: http://www.stockdio.com
 	Description: Easy to use and versatile stock market ticker, with support of over 65 world exchanges, commodities, indices and currencies.
 	Author: Stockdio
-	Version: 1.9.23
+	Version: 1.9.24
 	Author URI: http://www.stockdio.com
 */
 //set up the admin area options page 
-define('stockdio_ticker_version','1.9.23');
+define('stockdio_ticker_version','1.9.24');
 define( 'stockdio_ticker__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 class StockdioTickerSettingsPage
 {
@@ -1007,6 +1007,7 @@ function stockdio_ticker_func( $atts ) {
 	if (strpos($height, 'px') !== FALSE && strpos($height, '%') !== FALSE) 
 		$height =$height.'px';
 	if (!empty($height)){
+		$height = esc_attr($height);
 		$extraSettings .= '&height='.urlencode($height);
 		$iframeHeight=' height="'.$height.'" ';
 	}
@@ -1026,7 +1027,15 @@ function stockdio_ticker_func( $atts ) {
 	if ($loaddatawhenvisible == "1" || $loaddatawhenvisible == "true") 
 		$src = 'iframesrc';	
 	
-	$output = '<iframe referrerpolicy="no-referrer-when-downgrade" id="'.$iframe_id.'" frameBorder="0" class="stockdio_ticker" scrolling="no" width="'.$width.'" '.$iframeHeight.' '.$src.'="'.$link.'?app-key='.$api_key.'&wp=1&addVolume=false'.$extraSettings.'"></iframe>';  		
+		$srcurl = $link.'?app-key='.$api_key.'&wp=1&addVolume=false'.$extraSettings;
+
+		//Escaping the src url before output: 
+		$srcurl = esc_url($srcurl);
+	
+		$width = esc_attr($width);
+		$iframe_id = esc_attr($iframe_id);				
+
+	$output = '<iframe referrerpolicy="no-referrer-when-downgrade" id="'.$iframe_id.'" frameBorder="0" class="stockdio_ticker" scrolling="no" width="'.$width.'" '.$iframeHeight.' '.$src.'="'.$srcurl.'"></iframe>';  		
 	//$output = '<span> $labelscolor: '. $labelscolor.' </span><iframe referrerpolicy="no-referrer-when-downgrade" id="'.$iframe_id.'" frameBorder="0" class="stockdio_ticker" scrolling="no" width="'.$width.'" '.$iframeHeight.' '.$src.'="'.$link.'?app-key='.$api_key.'&wp=1&addVolume=false&showUserMenu=false'.$extraSettings.'"></iframe>';  		
   	//return completed string
   	return $output;

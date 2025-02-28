@@ -3,8 +3,8 @@ Contributors: stockdio
 Tags: stock ticker, stock market ticker, ticker, financial ticker, stocks, market, news, quote, finance, quotes, stock, financial, index, indices, currency, currencies, commodities, forex, foreign exchange.
 License: See www.stockdio.com/wordpress for details.
 Requires at least: 3.1
-Tested up to: 6.7.1
-Stable tag: 1.9.23
+Tested up to: 6.7.2
+Stable tag: 1.9.24
 Easy to use and versatile stock market ticker, with support of over 65 world exchanges, indices, commodities and currencies.
 
 == Description ==
@@ -15,7 +15,7 @@ If you're using the standard Gutenberg editor, the easiest way to include this p
 
 If you're using a different editor o prefer to use the shortcode, below is a sample to help you start. Please be aware that most of the parameters listed below are optional, and are also available through the plugin's settings page. Any parameter you include in the shortcode will overwrite the parameter used in the settings page.
 
-`[stock-market-ticker symbols="AAPL;MSFT;GOOG;HPQ;^SPX;^DJI;LSE:BAG" stockExchange="NYSENasdaq" width="100%" palette="financial-light"]`
+`[stock-market-ticker symbols="AAPL;MSFT;GOOG;HPQ;^SPX;^DJI;LSE:BAG" stockExchange="USA" width="100%" palette="financial-light"]`
 
 This plugin is part of the Stockdio Financial Widgets, which also includes the following plugins:
 
@@ -93,7 +93,7 @@ You can specify as many symbols as you want, from the selected exchange, separat
 
 = Can I combine more than one stock exchange on the same ticker? =
 
-Yes. The exchange you define in the stockExchange parameter will be the default stock exchange to be used. However, if you want to include symbols from a different exchange, you must prefix the symbol with the exchange code and a colon (:). For example, if you want to include two symbols from NYSE/Nasdaq but additionally include one symbol from London Stock Exchange, you would specify stockExchange="NYSENasdaq", and symbols="AAPL;MSFT;LSE:BAG". This will also allow you to combine stocks with commodities and currencies in the same ticker.
+Yes. The exchange you define in the stockExchange parameter will be the default stock exchange to be used. However, if you want to include symbols from a different exchange, you must prefix the symbol with the exchange code and a colon (:). For example, if you want to include two symbols from NYSE/Nasdaq but additionally include one symbol from London Stock Exchange, you would specify stockExchange="USA", and symbols="AAPL;MSFT;LSE:BAG". This will also allow you to combine stocks with commodities and currencies in the same ticker.
 
 = Can I include one or more market indices in the ticker? =
 
@@ -180,6 +180,11 @@ Yes. You must use BONDS as the stockExchange and then specify one or more bonds 
 14. Stock Market Ticker block sidebar settings.
 
 == Changelog ==
+= 1.19.24 =
+Release date: February 28, 2025
+
+* Fixes vulnerability issue.
+
 = 1.19.23 =
 Release date: Jan 29, 2025
 

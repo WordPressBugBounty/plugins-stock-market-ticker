@@ -4,11 +4,11 @@
 	Plugin URI: http://www.stockdio.com
 	Description: Easy to use and versatile stock market ticker, with support of over 65 world exchanges, commodities, indices and currencies.
 	Author: Stockdio
-	Version: 1.9.24
+	Version: 1.9.27
 	Author URI: http://www.stockdio.com
 */
 //set up the admin area options page 
-define('stockdio_ticker_version','1.9.24');
+define('stockdio_ticker_version','1.9.27');
 define( 'stockdio_ticker__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 class StockdioTickerSettingsPage
 {
@@ -57,10 +57,137 @@ class StockdioTickerSettingsPage
         add_action( 'admin_menu', array( $this, 'stockdio_ticker_add_plugin_page' ) );
         add_action( 'admin_init', array( $this, 'stockdio_ticker_page_init' ) );
 		add_action( 'admin_notices', array( $this, 'stockdio_ticker_display_notice' ) );
-		add_action('admin_head', 'stockdio_ticker_stockdio_js');
-		add_action('admin_head', 'stockdio_ticker_charts_button');
+		//add_action('admin_head', 'stockdio_ticker_stockdio_js');
+		//add_action('admin_head', 'stockdio_ticker_charts_button');
+
+		add_action('admin_enqueue_scripts', array($this, 'stockdio_ticker_admin_enqueue_scoped'));
     }
 	
+	public function stockdio_ticker_admin_enqueue_scoped($hook) {
+
+    // 0) Bloqueo duro: NO cargar nada en Fluent* (FluentCRM/FluentForms)
+    if (function_exists('get_current_screen')) {
+        $screen = get_current_screen();
+        if ($screen && !empty($screen->id)) {
+            $id = strtolower($screen->id);
+            if (strpos($id, 'fluent') !== false) {
+                return;
+            }
+        }
+    }
+
+    // 1) Solo cargar en TU página de settings (Ticker)
+    $is_settings_page =
+        ($hook === 'settings_page_stockdio-ticker-settings-config')
+        || ($hook === 'jetpack_page_stockdio-ticker-settings-config')
+        || ($hook === 'settings_page_stockdio-ticker-key-config')
+        || ($hook === 'jetpack_page_stockdio-ticker-key-config');
+
+    // 2) (Opcional) TinyMCE botón solo en editor core
+    $is_editor = in_array($hook, array('post.php', 'post-new.php'), true);
+
+    if (!$is_settings_page && !$is_editor) {
+        return; // clave: no tocar el resto del admin
+    }
+
+    if (!function_exists('get_plugin_data')) {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    }
+
+    $plugin_data = get_plugin_data(__FILE__);
+    $plugin_version = $plugin_data['Version'];
+    $version = stockdio_ticker_version;
+
+    // CSS admin
+    wp_enqueue_style(
+        'stockdio-ticker-admin-css',
+        plugin_dir_url(__FILE__) . 'assets/stockdio-ticker-wp.css',
+        array(),
+        $plugin_version
+    );
+
+    // CSS botón (solo si se usa en editor)
+    if ($is_editor) {
+        wp_enqueue_style(
+            'stockdio-ticker-tinymce-css',
+            plugin_dir_url(__FILE__) . 'assets/stockdio-tinymce-button.css',
+            array(),
+            $plugin_version
+        );
+    }
+
+    wp_enqueue_script('jquery');
+
+    wp_enqueue_script(
+        'stockdio-ticker-sortable',
+        plugin_dir_url(__FILE__) . 'assets/Sortable.min.js',
+        array(),
+        $version,
+        true
+    );
+
+    wp_enqueue_script(
+        'stockdio-ticker-wp-js',
+        plugin_dir_url(__FILE__) . 'assets/stockdio-wp.js',
+        array('jquery'),
+        $version,
+        true
+    );
+
+    // Search assets: SOLO settings page
+    // ⚠️ MUY IMPORTANTE: sin deps Gutenberg aquí (igual que el parche que funcionó)
+    if ($is_settings_page) {
+
+        wp_enqueue_style(
+            'stockdio-ticker-search-css',
+            plugin_dir_url(__FILE__) . 'assets/stockdio_search.css',
+            array(),
+            $version
+        );
+
+        wp_enqueue_style(
+            'stockdio-ticker-search-old-css',
+            plugin_dir_url(__FILE__) . 'assets/stockdio_search_old_version.css',
+            array(),
+            $version
+        );
+
+        wp_enqueue_script(
+            'stockdio-ticker-search-js',
+            plugin_dir_url(__FILE__) . 'assets/stockdio_search.js',
+            array(), // <- sin wp-api/wp-components/wp-element
+            $version,
+            true
+        );
+
+        // Inline vars SOLO settings page (reemplaza stockdio_ticker_stockdio_js)
+        $opts = get_option('stockdio_ticker_options');
+        if (!is_array($opts)) $opts = array();
+        $root = plugins_url('assets', __FILE__);
+
+        wp_add_inline_script(
+            'stockdio-ticker-wp-js',
+            'window.stockdio_root_folder = ' . wp_json_encode($root) . ';' .
+            'window.stockdio_ticker_settings = ' . wp_json_encode($opts) . ';' .
+            'window.stockdio_marker_ticker = 1;',
+            'before'
+        );
+    }
+
+    // TinyMCE botón SOLO editor core
+    if ($is_editor) {
+        $this->stockdio_ticker_charts_button_safe();
+    }
+}
+
+private function stockdio_ticker_charts_button_safe() {
+    if (current_user_can('edit_posts') && current_user_can('edit_pages')) {
+        add_filter('mce_external_plugins', 'stockdio_ticker_add_plugin');
+        add_filter('mce_buttons', 'stockdio_ticker_register_button');
+    }
+}
+
+
     /**
      * Add options page
      */
@@ -299,48 +426,6 @@ class StockdioTickerSettingsPage
 			
 		}
 		
-
-		//stockdio_ticker_version
-		//$version = date_timestamp_get(date_create());
-		$version = stockdio_ticker_version;
-		
-		$plugin_data = get_plugin_data( __FILE__ );
-		$plugin_version = $plugin_data['Version'];
-		$css_address=plugin_dir_url( __FILE__ )."assets/stockdio-ticker-wp.css";
-		wp_register_script("customAdminTickerCss",$css_address );
-		wp_enqueue_style("customAdminTickerCss", $css_address, array(), $version, false);
-		
-		$css_tinymce_button_address=plugin_dir_url( __FILE__ )."assets/stockdio-tinymce-button.css";
-		wp_register_script("custom_tinymce_button_Css",$css_tinymce_button_address );
-		wp_enqueue_style("custom_tinymce_button_Css", $css_tinymce_button_address, array(), $version, false);
-		
-		wp_enqueue_script('jquery');
-
-		$version = stockdio_ticker_version;
-		$js_sortable=plugin_dir_url( __FILE__ )."assets/Sortable.min.js";
-		wp_register_script("StockdioSortableJS",$js_sortable, null, $version, false );
-		wp_enqueue_script('StockdioSortableJS');
-	
-		$js_address=plugin_dir_url( __FILE__ )."assets/stockdio-wp.js";
-		wp_register_script("customStockdioJs",$js_address, null, $version, false );
-		wp_enqueue_script('customStockdioJs');
-		
-		$js_addressSearch=plugin_dir_url( __FILE__ )."assets/stockdio_search.js";
-		$css_addressSearch=plugin_dir_url( __FILE__ ).'assets/stockdio_search.css?v='.$version;
-		if (!function_exists( 'register_block_type')) {
-			wp_register_script("customStockdioSearchJS",$js_addressSearch, array( ), $version, false );			
-			wp_enqueue_style( 'customStockdioSearchStyles',$css_addressSearch , array() );
-
-			$css_addressSearchOldVersion=plugin_dir_url( __FILE__ ).'assets/stockdio_search_old_version.css?v='.$version;
-			wp_enqueue_style( 'customStockdioSearchStylesOldVersion',$css_addressSearchOldVersion , array() );
-		}
-		else{
-			//wp_register_script("customStockdioSearchJS",$js_addressSearch, array( ), $version, false );	
-			wp_enqueue_style( 'customStockdioSearchStyles',$css_addressSearch , array( 'wp-components' ) );	
-			wp_register_script("customStockdioSearchJS",$js_addressSearch, array( 'wp-api', 'wp-i18n', 'wp-components', 'wp-element' ), $version, false );
-		}
-		wp_enqueue_script('customStockdioSearchJS');
-	
 		
 		
     }
